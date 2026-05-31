@@ -5,6 +5,13 @@
 
 sqlite3 *db;
 
+typedef struct {
+  char date[15];
+  char chargeName[200];
+  double chargeAmount;
+  double chargeCumulative;
+} Charges;
+
 int db_connect() {
   int return_code = sqlite3_open("bankingdb.db", &db);
   if (return_code) {
@@ -28,7 +35,7 @@ void create_or_load_table() {
   int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
 }
 
-void write_to_table(char input_buffer[]) {
+void write_to_table(char *date, char *chargeName, double chargeAmount) {
   char *err_msg = 0;
   char *sql = "INSERT INTO Banking (Date, ChargeName, ChargeAmount) VALUES";
   int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
@@ -37,10 +44,30 @@ void write_to_table(char input_buffer[]) {
 }
 
 void field_splitter(char buffer[]) {
-  char *field = strtok(buffer, ",\r\n");
-  while (field != NULL) {
-    write_to_table(field);
-    field = strtok(NULL, ",");
+  Charges charges;
+
+  char *token = strtok(buffer, ",");
+  if (token != NULL) {
+    strcpy(charges.date, token);
+
+    token = strtok(NULL, ",");
+    if (token != NULL)
+      strcpy(charges.chargeName, token);
+
+    token = strtok(NULL, ",");
+    if (token != NULL)
+      charges.chargeAmount = strtod(token, NULL);
+
+    token = strtok(NULL, ",");
+    if (token != NULL)
+      charges.chargeCumulative = strtod(token, NULL);
+
+    printf(
+        "date: %s, chargeName: %s, chargeAmount: %.2f, chargeCumulative: %.2f",
+        charges.date, charges.chargeName, charges.chargeAmount,
+        charges.chargeCumulative);
+
+    write_to_table(charges.date, charges.chargeName, charges.chargeAmount);
   }
 }
 
