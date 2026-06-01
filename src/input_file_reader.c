@@ -43,25 +43,11 @@ void write_to_table(char *date, char *chargeName, double chargeAmount) {
   sqlite3_close(db);
 }
 
-void field_splitter(char buffer[]) {
+void field_splitter(char row[]) {
+
   Charges charges;
-
-  char *token = strtok(buffer, ",");
-  if (token != NULL) {
-    strcpy(charges.date, token);
-
-    token = strtok(NULL, ",");
-    if (token != NULL)
-      strcpy(charges.chargeName, token);
-
-    token = strtok(NULL, ",");
-    if (token != NULL)
-      charges.chargeAmount = strtod(token, NULL);
-
-    token = strtok(NULL, ",");
-    if (token != NULL)
-      charges.chargeCumulative = strtod(token, NULL);
-
+  if (sscanf(row, "%15[^,],%200[^,],%lf,,%lf", charges.date, charges.chargeName,
+             &charges.chargeAmount, &charges.chargeCumulative) == 4) {
     printf(
         "date: %s, chargeName: %s, chargeAmount: %.2f, chargeCumulative: %.2f",
         charges.date, charges.chargeName, charges.chargeAmount,
@@ -72,7 +58,7 @@ void field_splitter(char buffer[]) {
 }
 
 void input_file_reader(int num_files, char *file_name[]) {
-  char buffer[1024];
+  char row[2000];
 
   for (int file_index = 1; file_index < num_files; file_index++) {
     FILE *fptr = fopen(file_name[file_index], "r");
@@ -81,10 +67,10 @@ void input_file_reader(int num_files, char *file_name[]) {
       exit(-1);
     }
 
-    while (fgets(buffer, sizeof(buffer), fptr) != NULL) {
+    while (fgets(row, sizeof(row), fptr) != NULL) {
       db_connect();
       create_or_load_table();
-      field_splitter(buffer);
+      field_splitter(row);
     }
 
     fclose(fptr);
