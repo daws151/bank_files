@@ -30,16 +30,22 @@ void create_or_load_table() {
                     "ID INTEGER PRIMARY KEY, "
                     "Date TEXT, "
                     "ChargeName TEXT, "
-                    "ChargeAmount REAL, "
-                    "Cumulative REAL);";
+                    "ChargeAmount REAL);";
   int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
 }
 
 void write_to_table(char *date, char *chargeName, double chargeAmount) {
   char *err_msg = 0;
-  char *sql = "INSERT INTO Banking (Date, ChargeName, ChargeAmount) VALUES";
-  int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
-
+  sqlite3_stmt *stmt;
+  sqlite3_prepare_v2(
+      db,
+      "INSERT INTO Banking(Date, ChargeName, ChargeAmount) VALUES(?, ?, ?);",
+      -1, &stmt, NULL);
+  sqlite3_bind_text(stmt, 1, date, -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text(stmt, 2, chargeName, -1, SQLITE_TRANSIENT);
+  sqlite3_bind_double(stmt, 3, chargeAmount);
+  sqlite3_step(stmt);
+  sqlite3_finalize(stmt);
   sqlite3_close(db);
 }
 
