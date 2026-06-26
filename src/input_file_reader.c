@@ -31,11 +31,10 @@ void create_or_load_table() {
                     "Date TEXT, "
                     "ChargeName TEXT, "
                     "ChargeAmount REAL);";
-  int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
+  sqlite3_exec(db, sql, 0, 0, &err_msg);
 }
 
 void write_to_table(char *date, char *chargeName, double chargeAmount) {
-  char *err_msg = 0;
   sqlite3_stmt *stmt;
   sqlite3_prepare_v2(
       db,
